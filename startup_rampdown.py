@@ -162,14 +162,45 @@ pickle.dump(startup_345, open('../startup_345.p', 'wb'))
 
 # Create time of day / hour value in float (e.g. 13.75 is 1:45 P.M.)
 interior_temps['time_of_day'] = [x.hour + x.minute/60.0 for x in interior_temps.index]
-interior_temps.to_csv('../interior_temps_mat2.csv')
 
 interior_temps = pd.read_csv('../interior_temps_mat2.csv')
 
+interior_temps['month'] = [x.date().month for x in interior_temps.index]
+interior_temps['year'] = [x.date().year for x in interior_temps.index]
+interior_temps['week'] = [x.isocalendar()[1] for x in interior_temps.index]
+interior_temps['day_of_week'] = [x.weekday() for x in interior_temps.index]
+interior_temps['weekend'] = [1 if x >= 5 else 0 for x in interior_temps.day_of_week]
+
+day_of_week = {
+                0: 'Monday',
+                1: 'Tuesday', 
+                2: 'Wednesday', 
+                3: 'Thursday', 
+                4: 'Friday',
+                5: 'Saturday',
+                6: 'Sunday', 
+}
+                
+
+interior_temps.to_pickle('../interior_temps_mat2.p')
+interior_temps.to_csv('../interior_temps_mat2.csv')
+
+weekday_data = interior_temps.query('weekend==0')
+
+weekly_group = weekday_data.groupby(['month', 'week'])
+
+for week, weekly_data in weekly_group:
+    quad_data = weekly_data[[quadrant, 'time_of_day']]
+    plt.figure()
+    plt.plot(quad_data['time_of_day'], quad_data)
+    plt.title('week : ' + str(week))
+
+plt.show()
 
 
 
-for quadrant in interior_temps.columns:
+
+for quadrant in interior_temps.columns[-1]:
     print quadrant
 
 plt.figure()
