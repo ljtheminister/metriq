@@ -5,6 +5,7 @@ import datetime as dt
 from datetime import timedelta
 import cPickle as pickle
 import matplotlib.pyplot as plt
+from pandas.tseries.holiday import USFederalHolidayCalendar
 
 os.chdir('/home/lj/metriq/345')
 
@@ -188,36 +189,18 @@ interior_temps.to_csv('../interior_temps_mat2.csv')
 weekday_data = interior_temps.query('weekend==0')
 
 weekly_group = weekday_data.groupby(['month', 'week'])
-
-for week, weekly_data in weekly_group:
-    quad_data = weekly_data[[quadrant, 'time_of_day']]
-    plt.figure()
-    plt.plot(quad_data['time_of_day'], quad_data)
-    plt.title('week : ' + str(week))
-
-plt.show()
+quadrants = interior_temps.columns[:-6]
 
 
-
-
-for quadrant in interior_temps.columns[-1]:
+for quadrant in quadrants:
     print quadrant
-
-plt.figure()
-plt.plot(interior_temps['time_of_day'], interior_temps[quadrant])    
-plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
+    for week, weekly_data in weekly_group:
+        daily_group = weekly_data[[quadrant, 'time_of_day', 'day_of_week']].groupby(['day_of_week'])
+    plt.figure()
+    plt.title('week : ' + str(week))
+    for day, daily_data in daily_group:
+        plt.plot(daily_data['time_of_day'], daily_data[quadrant], label='%s'%(day_of_week[day]))
+    plt.legend(loc='best')
+    plt.show()
 
 
